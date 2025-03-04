@@ -3,10 +3,10 @@ import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { signIn, useSession, signOut } from "next-auth/react";
+// import { signIn, useSession, signOut } from "next-auth/react";
 
 export default function HomeScreen() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
 
   return (
     <ParallaxScrollView
@@ -22,14 +22,14 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
-      <ThemedView style={styles.titleContainer}>
+      {/* <ThemedView style={styles.titleContainer}>
         {session ? (
           <ThemedText>Email: {session.user?.email}</ThemedText>
         ) : (
           <Button title="Sign in" onPress={() => signIn("google")} />
         )}
         {session && <Button title="Sign out" onPress={() => signOut()} />}
-      </ThemedView>
+      </ThemedView> */}
     </ParallaxScrollView>
   );
 }
