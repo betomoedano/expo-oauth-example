@@ -6,8 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 // import { signIn, useSession, signOut } from "next-auth/react";
 
-const SERVER_URL = "http://localhost:8081"; // Your backend
-const AUTH_URL = `${SERVER_URL}/api/auth/login`;
+const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
 WebBrowser.maybeCompleteAuthSession();
 
