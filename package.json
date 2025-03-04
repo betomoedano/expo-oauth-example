@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint"
@@ -31,6 +31,7 @@
     "expo-system-ui": "~4.0.8",
     "expo-web-browser": "~14.0.2",
     "google-auth-library": "^9.15.1",
+    "jsonwebtoken": "^9.0.2",
     "next-auth": "^5.0.0-beta.25",
     "react": "18.3.1",
     "react-dom": "18.3.1",
