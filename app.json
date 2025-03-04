@@ -43,6 +43,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://beto-auth-example.expo.app"
+      },
+      "eas": {
+        "projectId": "53446019-1898-4ce4-a56e-d7c4a9c48b2b"
+      }
     }
   }
 }
