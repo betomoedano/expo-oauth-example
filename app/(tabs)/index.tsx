@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Button } from "react-native";
+import { Image, StyleSheet, Button, Platform, Linking } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -15,16 +15,40 @@ export default function HomeScreen() {
 
   const handleSignIn = async () => {
     try {
-      const result: WebBrowser.WebBrowserAuthSessionResult =
-        await WebBrowser.openAuthSessionAsync(AUTH_URL);
-      if (result.type === "success" && result.url) {
-        // Parse return url to extract token
+      // On Android, we need to use Linking API to handle the redirect back to app
+      // since WebBrowser uses custom tabs that return 'dismiss' when closed
+      const result = await WebBrowser.openAuthSessionAsync(
+        AUTH_URL,
+        "com.beto.expoauthjsexample://" // Match the scheme from app.json
+      );
+
+      console.log(JSON.stringify(result, null, 2));
+
+      if (Platform.OS === "android") {
+        // For Android, we need to listen to the URL event
+        const url = await new Promise<string>((resolve) => {
+          const subscription = Linking.addEventListener("url", (event) => {
+            subscription.remove();
+            resolve(event.url);
+          });
+        });
+
+        // Parse the deep link URL
+        const params = new URLSearchParams(new URL(url).search);
+        const jwtToken = params.get("jwtToken");
+
+        if (jwtToken) {
+          // TODO: Save token to async storage
+          console.log("Android token:", jwtToken);
+        }
+      } else if (result.type === "success" && result.url) {
+        // iOS flow remains the same
         const params = new URLSearchParams(new URL(result.url).search);
         const jwtToken = params.get("jwtToken");
 
         if (jwtToken) {
           // TODO: Save token to async storage
-          console.log(jwtToken);
+          console.log("iOS token:", jwtToken);
         } else {
           console.log("No token found");
         }
@@ -33,7 +57,6 @@ export default function HomeScreen() {
       console.log(e);
     }
   };
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
