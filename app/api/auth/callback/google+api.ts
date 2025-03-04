@@ -53,11 +53,21 @@ export async function GET(req: NextRequest) {
     // Here you can generate your own JWT
     const jwtToken = generateJWT(user); // Implement JWT logic
 
-    // Redirect user back to the app
-    const appRedirectUrl = "com.beto.expoauthjsexample://";
-    const redirectUrl = `${appRedirectUrl}?jwtToken=${jwtToken}`;
+    // Check if the request is from web or native
+    const userAgent = req.headers.get("user-agent") || "";
+    const isWeb =
+      userAgent.includes("Mozilla/") && !userAgent.includes("Mobile");
 
-    return NextResponse.redirect(redirectUrl);
+    if (isWeb) {
+      // For web, redirect to the web app URL
+      const webRedirectUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${jwtToken}`;
+      return NextResponse.redirect(webRedirectUrl);
+    } else {
+      // For native apps, use the deep link scheme
+      const appRedirectUrl = "com.beto.expoauthjsexample://";
+      const redirectUrl = `${appRedirectUrl}?jwtToken=${jwtToken}`;
+      return NextResponse.redirect(redirectUrl);
+    }
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },

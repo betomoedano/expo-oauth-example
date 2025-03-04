@@ -4,6 +4,7 @@ import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 // import { signIn, useSession, signOut } from "next-auth/react";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
@@ -11,10 +12,17 @@ const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
+  const token = useAuthRedirect();
   // const { data: session } = useSession();
 
   const handleSignIn = async () => {
     try {
+      if (Platform.OS === "web") {
+        // For web, directly redirect to the auth URL
+        window.location.href = AUTH_URL;
+        return;
+      }
+
       // On Android, we need to use Linking API to handle the redirect back to app
       // since WebBrowser uses custom tabs that return 'dismiss' when closed
       const result = await WebBrowser.openAuthSessionAsync(
@@ -71,6 +79,7 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      <ThemedText>Token: {token}</ThemedText>
       <Button title="Sign in" onPress={handleSignIn} />
       {/* <ThemedView style={styles.titleContainer}>
         {session ? (
