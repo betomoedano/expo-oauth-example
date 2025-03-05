@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "deploy": "EXPO_PUBLIC_BASE_URL=https://beto-auth-example.expo.app npx expo export --platform web -c && eas deploy --prod"
   },
   "jest": {
     "preset": "jest-expo"
