@@ -57,20 +57,18 @@ export async function GET(req: Request) {
 
     const jwtToken = jwt.sign(user, process.env.JWT_SECRET!);
 
-    // Check if the request is from web or native
-    const userAgent = req.headers.get("user-agent") || "";
-    const isWeb =
-      userAgent.includes("Mozilla/") && !userAgent.includes("Mobile");
+    // Get platform from state parameter
+    const platform = searchParams.get("state");
 
-    if (isWeb) {
-      // For web, redirect to the web app URL
-      const webRedirectUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${jwtToken}`;
-      return Response.redirect(webRedirectUrl);
-    } else {
+    if (platform === "native") {
       // For native apps, use the deep link scheme
       const appRedirectUrl = "com.beto.expoauthjsexample://";
       const redirectUrl = `${appRedirectUrl}?jwtToken=${jwtToken}`;
       return Response.redirect(redirectUrl);
+    } else {
+      // For all web browsers (desktop and mobile), redirect to the web app URL
+      const webRedirectUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${jwtToken}`;
+      return Response.redirect(webRedirectUrl);
     }
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });

@@ -3,6 +3,9 @@ const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callba
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const platform = searchParams.get("platform");
+
   console.log("Login API called");
   console.log("GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
   console.log("GOOGLE_REDIRECT_URI:", GOOGLE_REDIRECT_URI);
@@ -25,6 +28,11 @@ export async function GET(req: Request) {
     // state,
     prompt: "select_account",
   });
+
+  // Add platform to state parameter
+  if (platform) {
+    params.append("state", platform);
+  }
 
   const redirectUrl = `${GOOGLE_AUTH_URL}?${params.toString()}`;
   console.log("Redirecting to:", redirectUrl);

@@ -6,19 +6,20 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
 
-// import { signIn, useSession, signOut } from "next-auth/react";
-
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
   const [token, setToken] = useState<string | null>(null);
-  // const { data: session } = useSession();
 
   const handleSignIn = async () => {
     try {
-      const result = await WebBrowser.openAuthSessionAsync(AUTH_URL);
+      // Add platform parameter to AUTH_URL
+      const platformParam = Platform.OS === "web" ? "web" : "native";
+      const authUrlWithPlatform = `${AUTH_URL}?platform=${platformParam}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrlWithPlatform);
 
       if (Platform.OS === "android") {
         // For Android, we need to listen to the URL event
