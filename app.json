@@ -44,6 +44,7 @@
     "experiments": {
       "typedRoutes": true
     },
+    "owner": "expo-production",
     "extra": {
       "router": {
         "origin": "https://beto-auth-example.expo.app"

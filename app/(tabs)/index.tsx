@@ -17,17 +17,17 @@ export default function HomeScreen() {
 
   const handleSignIn = async () => {
     try {
-      if (Platform.OS === "web") {
-        // For web, directly redirect to the auth URL
-        window.location.href = AUTH_URL;
-        return;
-      }
+      // if (Platform.OS === "web") {
+      //   // For web, directly redirect to the auth URL
+      //   window.location.href = AUTH_URL;
+      //   return;
+      // }
 
       // On Android, we need to use Linking API to handle the redirect back to app
       // since WebBrowser uses custom tabs that return 'dismiss' when closed
       const result = await WebBrowser.openAuthSessionAsync(
-        AUTH_URL,
-        "com.beto.expoauthjsexample://" // Match the scheme from app.json
+        AUTH_URL
+        // "com.beto.expoauthjsexample://" // Match the scheme from app.json
       );
 
       console.log(JSON.stringify(result, null, 2));

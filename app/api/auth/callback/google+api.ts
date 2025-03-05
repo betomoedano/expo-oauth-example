@@ -1,5 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
-import { OAuth2Client } from "google-auth-library";
 // import jwt from "jsonwebtoken";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -7,12 +5,12 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback/google`;
 // const GOOGLE_REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Authorization code is missing" },
       { status: 400 }
     );
@@ -36,18 +34,25 @@ export async function GET(req: NextRequest) {
       throw new Error("Failed to get ID token");
     }
 
-    // Verify ID token
-    const client = new OAuth2Client(GOOGLE_CLIENT_ID);
-    const ticket = await client.verifyIdToken({
-      idToken: tokenData.id_token,
-      audience: GOOGLE_CLIENT_ID,
-    });
+    // Verify ID token by fetching user info directly from Google
+    const userInfoResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
 
-    const payload = ticket.getPayload();
+    if (!userInfoResponse.ok) {
+      throw new Error("Failed to get user info");
+    }
+
+    const userData = await userInfoResponse.json();
     const user = {
-      email: payload?.email,
-      name: payload?.name,
-      picture: payload?.picture,
+      email: userData.email,
+      name: userData.name,
+      picture: userData.picture,
     };
 
     // Here you can generate your own JWT
@@ -61,18 +66,15 @@ export async function GET(req: NextRequest) {
     if (isWeb) {
       // For web, redirect to the web app URL
       const webRedirectUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${jwtToken}`;
-      return NextResponse.redirect(webRedirectUrl);
+      return Response.redirect(webRedirectUrl);
     } else {
       // For native apps, use the deep link scheme
       const appRedirectUrl = "com.beto.expoauthjsexample://";
       const redirectUrl = `${appRedirectUrl}?jwtToken=${jwtToken}`;
-      return NextResponse.redirect(redirectUrl);
+      return Response.redirect(redirectUrl);
     }
   } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 }
 
