@@ -1,4 +1,4 @@
-// import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
@@ -55,8 +55,7 @@ export async function GET(req: Request) {
       picture: userData.picture,
     };
 
-    // Here you can generate your own JWT
-    const jwtToken = generateJWT(user); // Implement JWT logic
+    const jwtToken = jwt.sign(user, process.env.JWT_SECRET!);
 
     // Check if the request is from web or native
     const userAgent = req.headers.get("user-agent") || "";
@@ -76,10 +75,4 @@ export async function GET(req: Request) {
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
-}
-
-function generateJWT(user: any) {
-  // Implement JWT logic
-  // return jwt.sign(user, process.env.JWT_SECRET!);
-  return JSON.stringify(user);
 }

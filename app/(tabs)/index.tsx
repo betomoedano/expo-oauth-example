@@ -4,7 +4,8 @@ import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { useState } from "react";
+
 // import { signIn, useSession, signOut } from "next-auth/react";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
@@ -12,7 +13,7 @@ const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
-  const token = useAuthRedirect();
+  const [token, setToken] = useState<string | null>(null);
   // const { data: session } = useSession();
 
   const handleSignIn = async () => {
@@ -54,12 +55,8 @@ export default function HomeScreen() {
         const params = new URLSearchParams(new URL(result.url).search);
         const jwtToken = params.get("jwtToken");
 
-        if (jwtToken) {
-          // TODO: Save token to async storage
-          console.log("iOS token:", jwtToken);
-        } else {
-          console.log("No token found");
-        }
+        console.log("iOS token:", jwtToken);
+        setToken(jwtToken);
       }
     } catch (e) {
       console.log(e);
