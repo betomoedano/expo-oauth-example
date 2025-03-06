@@ -1,11 +1,19 @@
-import { Image, StyleSheet, Button, Platform, Linking } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Button,
+  Platform,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
@@ -25,7 +33,7 @@ export default function HomeScreen() {
   const handleSetTokens = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
-    const decoded = jwt_decode(accessToken);
+    const decoded = jwtDecode(accessToken);
     setUser(decoded as { email: string; name: string; picture?: string });
   };
 
@@ -104,51 +112,48 @@ export default function HomeScreen() {
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">
-          {user ? `Welcome, ${user.name}!` : "Welcome!"}
-        </ThemedText>
-        <HelloWave />
-      </ThemedView>
-
-      {user ? (
-        <ThemedView style={styles.userInfo}>
-          {user.picture && (
-            <Image source={{ uri: user.picture }} style={styles.avatar} />
-          )}
-          <ThemedText>Email: {user.email}</ThemedText>
-          <Button
-            title="Sign out"
-            onPress={() => {
-              setAccessToken(null);
-              setRefreshToken(null);
-              setUser(null);
-            }}
-          />
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+      >
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="title">
+            {user ? `Welcome, ${user.name}!` : "Welcome!"}
+          </ThemedText>
+          <HelloWave />
         </ThemedView>
-      ) : (
-        <Button title="Sign in" onPress={handleSignIn} />
-      )}
 
-      <Button title="Get public data" onPress={handleGetPublicData} />
-      <ThemedText>Public data: {JSON.stringify(publicData)}</ThemedText>
-      <Button title="Get protected data" onPress={handleGetProtectedData} />
-      <ThemedText>
-        Protected data: {JSON.stringify(protectedData, null, 2)}
-      </ThemedText>
-      <Button title="Refresh token" onPress={handleRefreshToken} />
-      <ThemedText>Access token: {accessToken}</ThemedText>
-      <ThemedText>Refresh token: {refreshToken}</ThemedText>
-    </ParallaxScrollView>
+        {user ? (
+          <ThemedView style={styles.userInfo}>
+            {user.picture && (
+              <Image source={{ uri: user.picture }} style={styles.avatar} />
+            )}
+            <ThemedText>Email: {user.email}</ThemedText>
+            <Button
+              title="Sign out"
+              onPress={() => {
+                setAccessToken(null);
+                setRefreshToken(null);
+                setUser(null);
+              }}
+            />
+          </ThemedView>
+        ) : (
+          <Button title="Sign in" onPress={handleSignIn} />
+        )}
+
+        <Button title="Get public data" onPress={handleGetPublicData} />
+        <ThemedText>Public data: {JSON.stringify(publicData)}</ThemedText>
+        <Button title="Get protected data" onPress={handleGetProtectedData} />
+        <ThemedText>
+          Protected data: {JSON.stringify(protectedData, null, 2)}
+        </ThemedText>
+        <Button title="Refresh token" onPress={handleRefreshToken} />
+        <ThemedText>Access token: {accessToken}</ThemedText>
+        <ThemedText>Refresh token: {refreshToken}</ThemedText>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
