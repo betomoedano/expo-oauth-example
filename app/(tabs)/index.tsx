@@ -6,6 +6,8 @@ import {
   Linking,
   SafeAreaView,
   ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { HelloWave } from "@/components/HelloWave";
@@ -112,77 +114,201 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
       >
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">
-            {user ? `Welcome, ${user.name}!` : "Welcome!"}
+        <ThemedView style={styles.header}>
+          <ThemedText type="title" style={styles.welcomeText}>
+            {user ? `Welcome back, ${user.name}! 👋` : "Welcome! 👋"}
           </ThemedText>
-          <HelloWave />
         </ThemedView>
 
         {user ? (
-          <ThemedView style={styles.userInfo}>
+          <ThemedView style={styles.userCard}>
             {user.picture && (
               <Image source={{ uri: user.picture }} style={styles.avatar} />
             )}
-            <ThemedText>Email: {user.email}</ThemedText>
-            <Button
-              title="Sign out"
+            <ThemedText style={styles.userEmail}>{user.email}</ThemedText>
+            <TouchableOpacity
+              style={styles.signOutButton}
               onPress={() => {
                 setAccessToken(null);
                 setRefreshToken(null);
                 setUser(null);
               }}
-            />
+            >
+              <ThemedText style={styles.buttonText}>Sign out</ThemedText>
+            </TouchableOpacity>
           </ThemedView>
         ) : (
-          <Button title="Sign in" onPress={handleSignIn} />
+          <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+            <ThemedText style={styles.buttonText}>
+              Sign in with Google
+            </ThemedText>
+          </TouchableOpacity>
         )}
 
-        <Button title="Get public data" onPress={handleGetPublicData} />
-        <ThemedText>Public data: {JSON.stringify(publicData)}</ThemedText>
-        <Button title="Get protected data" onPress={handleGetProtectedData} />
-        <ThemedText>
-          Protected data: {JSON.stringify(protectedData, null, 2)}
-        </ThemedText>
-        <Button title="Refresh token" onPress={handleRefreshToken} />
-        <ThemedText>Access token: {accessToken}</ThemedText>
-        <ThemedText>Refresh token: {refreshToken}</ThemedText>
+        <View style={styles.dataSection}>
+          <TouchableOpacity
+            style={styles.dataButton}
+            onPress={handleGetPublicData}
+          >
+            <ThemedText style={styles.buttonText}>Get public data</ThemedText>
+          </TouchableOpacity>
+          <ThemedView style={styles.dataDisplay}>
+            <ThemedText style={styles.dataLabel}>Public data:</ThemedText>
+            <ThemedText style={styles.dataContent}>
+              {JSON.stringify(publicData)}
+            </ThemedText>
+          </ThemedView>
+
+          <TouchableOpacity
+            style={styles.dataButton}
+            onPress={handleGetProtectedData}
+          >
+            <ThemedText style={styles.buttonText}>
+              Get protected data
+            </ThemedText>
+          </TouchableOpacity>
+          <ThemedView style={styles.dataDisplay}>
+            <ThemedText style={styles.dataLabel}>Protected data:</ThemedText>
+            <ThemedText style={styles.dataContent}>
+              {JSON.stringify(protectedData, null, 2)}
+            </ThemedText>
+          </ThemedView>
+
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={handleRefreshToken}
+          >
+            <ThemedText style={styles.buttonText}>Refresh token</ThemedText>
+          </TouchableOpacity>
+
+          <ThemedView style={styles.tokenSection}>
+            <ThemedText style={styles.tokenLabel}>Access token:</ThemedText>
+            <ThemedText style={styles.tokenText} numberOfLines={1}>
+              {accessToken}
+            </ThemedText>
+            <ThemedText style={styles.tokenLabel}>Refresh token:</ThemedText>
+            <ThemedText style={styles.tokenText} numberOfLines={1}>
+              {refreshToken}
+            </ThemedText>
+          </ThemedView>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  header: {
+    marginBottom: 24,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  userCard: {
+    padding: 24,
+    borderRadius: 16,
     alignItems: "center",
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
-  userInfo: {
-    padding: 16,
-    gap: 8,
-    alignItems: "center",
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 16,
+  },
+  userEmail: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  signInButton: {
+    backgroundColor: "#4285F4",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  signOutButton: {
+    backgroundColor: "#DC3545",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    width: "100%",
+  },
+  dataButton: {
+    backgroundColor: "#34A853",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  refreshButton: {
+    backgroundColor: "#FBBC05",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  dataSection: {
+    gap: 16,
+  },
+  dataDisplay: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  dataLabel: {
+    fontSize: 16,
+    fontWeight: "600",
     marginBottom: 8,
+  },
+  dataContent: {
+    fontSize: 14,
+  },
+  tokenSection: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  tokenLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  tokenText: {
+    fontSize: 12,
+    marginBottom: 12,
+    opacity: 0.7,
   },
 });
