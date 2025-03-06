@@ -16,7 +16,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.beto.expoauthjsexample"
     },
     "web": {
       "bundler": "metro",
@@ -24,7 +25,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://beto.dev"
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -37,6 +43,15 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "owner": "expo-production",
+    "extra": {
+      "router": {
+        "origin": "https://beto-auth-example.expo.app"
+      },
+      "eas": {
+        "projectId": "53446019-1898-4ce4-a56e-d7c4a9c48b2b"
+      }
     }
   }
 }
