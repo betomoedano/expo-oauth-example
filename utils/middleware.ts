@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export type AuthUser = {
+  id: string;
   email: string;
   name: string;
   picture?: string;
@@ -49,10 +50,13 @@ export function withAuth<T extends Response>(
       // Call the handler with the authenticated user
       return await handler(req, decoded);
     } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        return Response.json({ error: "Invalid token" }, { status: 401 });
-      } else if (error instanceof jwt.TokenExpiredError) {
+      // Check for TokenExpiredError first since it's a subclass of JsonWebTokenError
+      if (error instanceof jwt.TokenExpiredError) {
+        console.error("Token expired:", error);
         return Response.json({ error: "Token expired" }, { status: 401 });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        console.error("Invalid token:", error);
+        return Response.json({ error: "Invalid token" }, { status: 401 });
       } else {
         console.error("Auth error:", error);
         return Response.json(

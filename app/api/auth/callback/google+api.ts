@@ -54,23 +54,31 @@ export async function GET(req: Request) {
       picture: userData.picture,
     };
 
-    const jwtToken = jwt.sign(user, process.env.JWT_SECRET!, {
+    // Generate access token (short-lived)
+    const accessToken = jwt.sign(user, process.env.JWT_SECRET!, {
       algorithm: "HS256",
-      expiresIn: "1h",
+      expiresIn: "10s",
+    });
+
+    // Generate refresh token (long-lived)
+    const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET!, {
+      algorithm: "HS256",
+      expiresIn: "7d", // 7 days
     });
 
     // Get platform from state parameter
     const platform = searchParams.get("state");
 
-    if (platform === "native") {
-      // For native apps, use the deep link scheme
-      const appRedirectUrl = "com.beto.expoauthjsexample://";
-      const redirectUrl = `${appRedirectUrl}?jwtToken=${jwtToken}`;
-      return Response.redirect(redirectUrl);
+    // Return both tokens to the client
+    if (platform === "web") {
+      return Response.redirect(
+        `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${accessToken}&refreshToken=${refreshToken}`
+      );
     } else {
-      // For all web browsers (desktop and mobile), redirect to the web app URL
-      const webRedirectUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${jwtToken}`;
-      return Response.redirect(webRedirectUrl);
+      // For mobile platforms
+      return Response.redirect(
+        `${process.env.EXPO_PUBLIC_SCHEME}://?jwtToken=${accessToken}&refreshToken=${refreshToken}`
+      );
     }
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });

@@ -5,26 +5,38 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
+import jwt_decode from "jwt-decode";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
-  const [token, setToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [publicData, setPublicData] = useState<string | null>(null);
   const [protectedData, setProtectedData] = useState<string | null>(null);
+  const [user, setUser] = useState<{
+    email: string;
+    name: string;
+    picture?: string;
+  } | null>(null);
+
+  const handleSetTokens = (accessToken: string, refreshToken: string) => {
+    setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
+    const decoded = jwt_decode(accessToken);
+    setUser(decoded as { email: string; name: string; picture?: string });
+  };
 
   const handleSignIn = async () => {
     try {
-      // Add platform parameter to AUTH_URL
       const platformParam = Platform.OS === "web" ? "web" : "native";
       const authUrlWithPlatform = `${AUTH_URL}?platform=${platformParam}`;
 
       const result = await WebBrowser.openAuthSessionAsync(authUrlWithPlatform);
 
       if (Platform.OS === "android") {
-        // For Android, we need to listen to the URL event
         const url = await new Promise<string>((resolve) => {
           const subscription = Linking.addEventListener("url", (event) => {
             subscription.remove();
@@ -32,19 +44,21 @@ export default function HomeScreen() {
           });
         });
 
-        // Parse the deep link URL
         const params = new URLSearchParams(new URL(url).search);
         const jwtToken = params.get("jwtToken");
+        const refreshToken = params.get("refreshToken");
 
-        if (jwtToken) {
-          setToken(jwtToken);
+        if (jwtToken && refreshToken) {
+          handleSetTokens(jwtToken, refreshToken);
         }
       } else if (result.type === "success" && result.url) {
-        // iOS flow remains the same
         const params = new URLSearchParams(new URL(result.url).search);
         const jwtToken = params.get("jwtToken");
+        const refreshToken = params.get("refreshToken");
 
-        setToken(jwtToken);
+        if (jwtToken && refreshToken) {
+          handleSetTokens(jwtToken, refreshToken);
+        }
       }
     } catch (e) {
       console.log(e);
@@ -64,12 +78,29 @@ export default function HomeScreen() {
       `${process.env.EXPO_PUBLIC_BASE_URL}/api/protected/data`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
     const data = await response.json();
     setProtectedData(data);
+  };
+
+  const handleRefreshToken = async () => {
+    if (!refreshToken) return;
+
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/refresh-token?refreshToken=${refreshToken}`
+      );
+      const data = await response.json();
+
+      if (data.token) {
+        handleSetTokens(data.token, refreshToken);
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
@@ -83,25 +114,40 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">
+          {user ? `Welcome, ${user.name}!` : "Welcome!"}
+        </ThemedText>
         <HelloWave />
       </ThemedView>
-      <Button title="Sign in" onPress={handleSignIn} />
+
+      {user ? (
+        <ThemedView style={styles.userInfo}>
+          {user.picture && (
+            <Image source={{ uri: user.picture }} style={styles.avatar} />
+          )}
+          <ThemedText>Email: {user.email}</ThemedText>
+          <Button
+            title="Sign out"
+            onPress={() => {
+              setAccessToken(null);
+              setRefreshToken(null);
+              setUser(null);
+            }}
+          />
+        </ThemedView>
+      ) : (
+        <Button title="Sign in" onPress={handleSignIn} />
+      )}
+
       <Button title="Get public data" onPress={handleGetPublicData} />
       <ThemedText>Public data: {JSON.stringify(publicData)}</ThemedText>
       <Button title="Get protected data" onPress={handleGetProtectedData} />
       <ThemedText>
         Protected data: {JSON.stringify(protectedData, null, 2)}
       </ThemedText>
-
-      {/* <ThemedView style={styles.titleContainer}>
-        {session ? (
-          <ThemedText>Email: {session.user?.email}</ThemedText>
-        ) : (
-          <Button title="Sign in" onPress={() => signIn("google")} />
-        )}
-        {session && <Button title="Sign out" onPress={() => signOut()} />}
-      </ThemedView> */}
+      <Button title="Refresh token" onPress={handleRefreshToken} />
+      <ThemedText>Access token: {accessToken}</ThemedText>
+      <ThemedText>Refresh token: {refreshToken}</ThemedText>
     </ParallaxScrollView>
   );
 }
@@ -122,5 +168,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: "absolute",
+  },
+  userInfo: {
+    padding: 16,
+    gap: 8,
+    alignItems: "center",
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 8,
   },
 });

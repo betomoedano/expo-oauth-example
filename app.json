@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "expo-authjs-example",
-    "slug": "expo-authjs-example",
+    "name": "expo-auth-example",
+    "slug": "expo-auth-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "betoauthexample",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.beto.expoauthjsexample"
+      "bundleIdentifier": "com.beto.expoauthexample"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.beto.expoauthjsexample"
+      "package": "com.beto.expoauthexample"
     },
     "web": {
       "bundler": "metro",
