@@ -113,6 +113,26 @@ export default function HomeScreen() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      if (refreshToken) {
+        // Call sign-out endpoint to invalidate refresh token
+        await fetch(
+          `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/signout?refreshToken=${refreshToken}`,
+          { method: "POST" }
+        );
+      }
+    } catch (e) {
+      console.log("Sign out error:", e);
+    } finally {
+      // Clear all auth-related state
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      setProtectedData(null);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -133,11 +153,7 @@ export default function HomeScreen() {
             <ThemedText style={styles.userEmail}>{user.email}</ThemedText>
             <TouchableOpacity
               style={styles.signOutButton}
-              onPress={() => {
-                setAccessToken(null);
-                setRefreshToken(null);
-                setUser(null);
-              }}
+              onPress={handleSignOut}
             >
               <ThemedText style={styles.buttonText}>Sign out</ThemedText>
             </TouchableOpacity>
