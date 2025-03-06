@@ -55,7 +55,10 @@ export async function GET(req: Request) {
       picture: userData.picture,
     };
 
-    const jwtToken = jwt.sign(user, process.env.JWT_SECRET!);
+    const jwtToken = jwt.sign(user, process.env.JWT_SECRET!, {
+      algorithm: "HS256",
+      expiresIn: "1h",
+    });
 
     // Get platform from state parameter
     const platform = searchParams.get("state");
