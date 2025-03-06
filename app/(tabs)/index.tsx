@@ -12,6 +12,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
   const [token, setToken] = useState<string | null>(null);
+  const [publicData, setPublicData] = useState<string | null>(null);
+  const [protectedData, setProtectedData] = useState<string | null>(null);
 
   const handleSignIn = async () => {
     try {
@@ -48,6 +50,28 @@ export default function HomeScreen() {
       console.log(e);
     }
   };
+
+  const handleGetPublicData = async () => {
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_BASE_URL}/api/public/data`
+    );
+    const data = await response.json();
+    setPublicData(data);
+  };
+
+  const handleGetProtectedData = async () => {
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_BASE_URL}/api/protected/data`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    setProtectedData(data);
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -62,8 +86,14 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
-      <ThemedText>Token: {token}</ThemedText>
       <Button title="Sign in" onPress={handleSignIn} />
+      <Button title="Get public data" onPress={handleGetPublicData} />
+      <ThemedText>Public data: {JSON.stringify(publicData)}</ThemedText>
+      <Button title="Get protected data" onPress={handleGetProtectedData} />
+      <ThemedText>
+        Protected data: {JSON.stringify(protectedData, null, 2)}
+      </ThemedText>
+
       {/* <ThemedView style={styles.titleContainer}>
         {session ? (
           <ThemedText>Email: {session.user?.email}</ThemedText>
