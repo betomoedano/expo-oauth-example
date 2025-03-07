@@ -1,50 +1,93 @@
-# Welcome to your Expo app 👋
+# Expo Auth Example with Google Sign-In 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Frontend) architecture for Google authentication using Expo API Routes and JWTs.
 
-## Get started
+## Features
+
+- 🔐 Google Authentication
+- 🎯 BFF Architecture with Expo API Routes
+- 🎫 JWT-based token management (access & refresh tokens)
+- 📱 Cross-platform support (iOS, Android, Web)
+- 🔄 Token refresh mechanism
+- 🛡️ Protected API routes
+
+## Prerequisites
+
+- [Bun](https://bun.sh) for dependency management
+- [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
+- [Expo Development Environment](https://docs.expo.dev/get-started/installation/)
+
+## Environment Setup
+
+1. Create a `.env.local` file in the root directory with:
+
+```bash
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+JWT_SECRET=your_jwt_secret
+JWT_REFRESH_SECRET=your_jwt_refresh_secret
+EXPO_PUBLIC_BASE_URL=your_base_url # e.g., http://localhost:8081
+EXPO_PUBLIC_SCHEME=your_app_scheme # matches app.json scheme
+```
+
+## Get Started
 
 1. Install dependencies
 
    ```bash
-   npm install
+   bun install
    ```
 
-2. Start the app
+2. Start the development server
 
    ```bash
-    npx expo start
+   bun start
    ```
 
-In the output, you'll find options to open the app in a
+## Testing the App
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+You can test the app in:
+
+- [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Web browser](https://docs.expo.dev/workflow/web/)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
+- `/app` - Main application code using file-based routing
+- `/app/api` - Backend API routes (BFF)
+  - `/auth` - Authentication endpoints
+  - `/public` - Public endpoints
+  - `/protected` - Protected endpoints requiring JWT
+- `/components` - Reusable React components
+- `/utils` - Utility functions and middleware
 
-When you're ready, run:
+## Authentication Flow
 
-```bash
-npm run reset-project
-```
+1. User initiates Google sign-in
+2. App redirects to Google OAuth
+3. Google redirects back to our API
+4. Backend validates Google token
+5. Backend issues JWT tokens (access + refresh)
+6. Frontend stores tokens and uses them for API calls
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## API Routes
 
-## Learn more
+- `GET /api/auth/login` - Initiates Google OAuth flow
+- `GET /api/auth/callback/google` - Google OAuth callback
+- `GET /api/auth/refresh-token` - Refresh access token
+- `POST /api/auth/signout` - Sign out and invalidate tokens
+- `GET /api/protected/data` - Example protected endpoint
+- `GET /api/public/data` - Example public endpoint
 
-To learn more about developing your project with Expo, look at the following resources:
+## Learn More
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- [Expo documentation](https://docs.expo.dev/)
+- [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
+- [JWT.io](https://jwt.io/)
 
-## Join the community
+## Community
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo on GitHub](https://github.com/expo/expo)
+- [Expo Discord](https://chat.expo.dev)
