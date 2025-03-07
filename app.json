@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "expo-auth-example",
-    "slug": "expo-auth-example",
+    "slug": "expo-authjs-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
