@@ -4,10 +4,32 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback/google`;
 
+// Extract platform from state
+function extractPlatformFromState(state: string): string | null {
+  const parts = state.split(".");
+  return parts.length > 1 ? parts[1] : null;
+}
+
+// Validate state parameter format
+function isValidState(state: string): boolean {
+  // State should be either 64 chars (32 bytes in hex)
+  // or 64 chars + dot + platform
+  const parts = state.split(".");
+
+  if (parts.length > 2) return false;
+  if (parts[0].length !== 64) return false;
+  if (parts.length === 2 && !["web", "native"].includes(parts[1])) return false;
+
+  // Verify the hex format of the random part
+  return /^[a-f0-9]{64}$/i.test(parts[0]);
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
+  const state = searchParams.get("state");
 
+  // Validate the authorization code
   if (!code) {
     return Response.json(
       { error: "Authorization code is missing" },
@@ -15,7 +37,15 @@ export async function GET(req: Request) {
     );
   }
 
+  // Validate state parameter
+  if (!state || !isValidState(state)) {
+    return Response.json({ error: "Invalid state parameter" }, { status: 400 });
+  }
+
   try {
+    // Extract platform from state
+    const platform = extractPlatformFromState(state);
+
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -72,10 +102,7 @@ export async function GET(req: Request) {
       expiresIn: "7d", // 7 days
     });
 
-    // Get platform from state parameter
-    const platform = searchParams.get("state");
-
-    // Return both tokens to the client
+    // Use the extracted platform for redirect
     if (platform === "web") {
       return Response.redirect(
         `${process.env.EXPO_PUBLIC_BASE_URL}/?jwtToken=${accessToken}&refreshToken=${refreshToken}`
