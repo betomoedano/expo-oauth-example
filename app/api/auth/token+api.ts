@@ -36,7 +36,9 @@ export async function POST(request: Request) {
   }
 
   const userInfo = jwt.decode(data.id_token) as object;
-  const customToken = jwt.sign(userInfo, process.env.JWT_SECRET!);
+  const customToken = jwt.sign(userInfo, process.env.JWT_SECRET!, {
+    expiresIn: "1d",
+  });
 
   if (data.error) {
     return Response.json(
