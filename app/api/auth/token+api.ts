@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback`;
@@ -27,6 +28,16 @@ export async function POST(request: Request) {
 
   const data = await response.json();
 
+  if (!data.id_token) {
+    return Response.json(
+      { error: "Missing required parameters" },
+      { status: 400 }
+    );
+  }
+
+  const userInfo = jwt.decode(data.id_token) as object;
+  const customToken = jwt.sign(userInfo, process.env.JWT_SECRET!);
+
   if (data.error) {
     return Response.json(
       {
@@ -41,5 +52,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return Response.json(data);
+  return Response.json(customToken);
 }

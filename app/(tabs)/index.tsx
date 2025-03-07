@@ -20,6 +20,7 @@ import {
   exchangeCodeAsync,
   makeRedirectUri,
   useAuthRequest,
+  TokenResponse,
 } from "expo-auth-session";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
@@ -44,7 +45,7 @@ export default function HomeScreen() {
   const [protectedData, setProtectedData] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [code, setCode] = useState<string | null>(null);
-  const [token, setToken] = useState<string | undefined>(undefined);
+  const [tokenResponse, setTokenResponse] = useState<string | null>(null);
 
   const [request, response, promptAsync] = useAuthRequest(config, discovery);
 
@@ -58,16 +59,21 @@ export default function HomeScreen() {
       setCode(code);
 
       // exchange code for tokens
-      const tokenResponse = await exchangeCodeAsync(
+      const formData = new FormData();
+      formData.append("code", code);
+      const tokenResponse = await fetch(
+        `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
         {
-          code,
-          redirectUri: makeRedirectUri(),
-          clientId: "google",
-        },
-        discovery
+          method: "POST",
+          body: formData,
+        }
       );
+      const data = await tokenResponse.json();
       // use token to get user info
-      setToken(tokenResponse.idToken);
+      setTokenResponse(data);
+      const decoded = jwtDecode(data);
+      setUser(decoded as AuthUser);
+      console.log("TOKEN RESPONSE", decoded);
     }
   }
 
@@ -76,42 +82,6 @@ export default function HomeScreen() {
     setRefreshToken(refreshToken);
     const decoded = jwtDecode(accessToken);
     setUser(decoded as AuthUser);
-  };
-
-  const handleSignIn = async () => {
-    try {
-      const platformParam = Platform.OS === "web" ? "web" : "native";
-      const authUrlWithPlatform = `${AUTH_URL}?platform=${platformParam}`;
-
-      const result = await WebBrowser.openAuthSessionAsync(authUrlWithPlatform);
-
-      if (Platform.OS === "android") {
-        const url = await new Promise<string>((resolve) => {
-          const subscription = Linking.addEventListener("url", (event) => {
-            subscription.remove();
-            resolve(event.url);
-          });
-        });
-
-        const params = new URLSearchParams(new URL(url).search);
-        const jwtToken = params.get("jwtToken");
-        const refreshToken = params.get("refreshToken");
-
-        if (jwtToken && refreshToken) {
-          handleSetTokens(jwtToken, refreshToken);
-        }
-      } else if (result.type === "success" && result.url) {
-        const params = new URLSearchParams(new URL(result.url).search);
-        const jwtToken = params.get("jwtToken");
-        const refreshToken = params.get("refreshToken");
-
-        if (jwtToken && refreshToken) {
-          handleSetTokens(jwtToken, refreshToken);
-        }
-      }
-    } catch (e) {
-      console.log(e);
-    }
   };
 
   const handleGetPublicData = async () => {
