@@ -13,9 +13,8 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) for dependency management
 - [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
-- [Expo Development Environment](https://docs.expo.dev/get-started/installation/)
+- [Expo Development Environment](https://docs.expo.dev/get-started/set-up-your-environment/)
 
 ## Environment Setup
 
@@ -38,20 +37,11 @@ EXPO_PUBLIC_SCHEME=your_app_scheme # matches app.json scheme
    bun install
    ```
 
-2. Start the development server
+2. Run the app
 
    ```bash
-   bun start
+   npx expo run:ios
    ```
-
-## Testing the App
-
-You can test the app in:
-
-- [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Web browser](https://docs.expo.dev/workflow/web/)
 
 ## Project Structure
 
