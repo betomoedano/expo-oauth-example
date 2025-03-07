@@ -48,10 +48,16 @@ export async function GET(req: Request) {
     }
 
     const userData = await userInfoResponse.json();
+    console.log("USER DATA FROM GOOGLE", userData);
     const user = {
+      id: userData.sub,
       email: userData.email,
       name: userData.name,
+      given_name: userData.given_name,
+      family_name: userData.family_name,
+      email_verified: userData.email_verified,
       picture: userData.picture,
+      provider: "google",
     };
 
     // Generate access token (short-lived)

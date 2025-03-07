@@ -1,7 +1,6 @@
 import {
   Image,
   StyleSheet,
-  Button,
   Platform,
   Linking,
   SafeAreaView,
@@ -10,12 +9,11 @@ import {
   View,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { AuthUser } from "@/utils/middleware";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
@@ -26,17 +24,13 @@ export default function HomeScreen() {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [publicData, setPublicData] = useState<string | null>(null);
   const [protectedData, setProtectedData] = useState<string | null>(null);
-  const [user, setUser] = useState<{
-    email: string;
-    name: string;
-    picture?: string;
-  } | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   const handleSetTokens = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
     const decoded = jwtDecode(accessToken);
-    setUser(decoded as { email: string; name: string; picture?: string });
+    setUser(decoded as AuthUser);
   };
 
   const handleSignIn = async () => {
@@ -165,6 +159,12 @@ export default function HomeScreen() {
             </ThemedText>
           </TouchableOpacity>
         )}
+        <ThemedView style={styles.dataDisplay}>
+          <ThemedText style={styles.dataLabel}>Full user data:</ThemedText>
+          <ThemedText style={styles.dataContent}>
+            {JSON.stringify(user, null, 2)}
+          </ThemedText>
+        </ThemedView>
 
         <View style={styles.dataSection}>
           <TouchableOpacity
@@ -300,6 +300,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   dataDisplay: {
+    maxWidth: "100%",
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
