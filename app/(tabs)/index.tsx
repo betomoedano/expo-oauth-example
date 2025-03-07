@@ -11,13 +11,31 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthUser } from "@/utils/middleware";
+import {
+  AuthRequestConfig,
+  DiscoveryDocument,
+  exchangeCodeAsync,
+  makeRedirectUri,
+  useAuthRequest,
+} from "expo-auth-session";
 
 const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
 WebBrowser.maybeCompleteAuthSession();
+
+const config: AuthRequestConfig = {
+  clientId: "google",
+  scopes: ["openid", "profile", "email"],
+  redirectUri: makeRedirectUri(),
+};
+
+const discovery: DiscoveryDocument = {
+  authorizationEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/authorize`,
+  tokenEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
+};
 
 export default function HomeScreen() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -25,6 +43,33 @@ export default function HomeScreen() {
   const [publicData, setPublicData] = useState<string | null>(null);
   const [protectedData, setProtectedData] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [code, setCode] = useState<string | null>(null);
+  const [token, setToken] = useState<string | undefined>(undefined);
+
+  const [request, response, promptAsync] = useAuthRequest(config, discovery);
+
+  useEffect(() => {
+    handleResponse();
+  }, [response]);
+
+  async function handleResponse() {
+    if (response?.type === "success") {
+      const { code } = response.params;
+      setCode(code);
+
+      // exchange code for tokens
+      const tokenResponse = await exchangeCodeAsync(
+        {
+          code,
+          redirectUri: makeRedirectUri(),
+          clientId: "google",
+        },
+        discovery
+      );
+      // use token to get user info
+      setToken(tokenResponse.idToken);
+    }
+  }
 
   const handleSetTokens = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
@@ -153,7 +198,11 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         ) : (
-          <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+          <TouchableOpacity
+            style={styles.signInButton}
+            disabled={!request}
+            onPress={() => promptAsync()}
+          >
             <ThemedText style={styles.buttonText}>
               Sign in with Google
             </ThemedText>
