@@ -1,8 +1,6 @@
 import {
   Image,
   StyleSheet,
-  Platform,
-  Linking,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -17,13 +15,9 @@ import { AuthUser } from "@/utils/middleware";
 import {
   AuthRequestConfig,
   DiscoveryDocument,
-  exchangeCodeAsync,
   makeRedirectUri,
   useAuthRequest,
-  TokenResponse,
 } from "expo-auth-session";
-
-const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -97,7 +91,7 @@ export default function HomeScreen() {
       `${process.env.EXPO_PUBLIC_BASE_URL}/api/protected/data`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${tokenResponse}`,
         },
       }
     );
