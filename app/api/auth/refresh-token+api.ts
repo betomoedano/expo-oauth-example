@@ -23,6 +23,10 @@ export async function GET(req: Request) {
         email: decoded.email,
         name: decoded.name,
         picture: decoded.picture,
+        given_name: decoded.given_name,
+        family_name: decoded.family_name,
+        email_verified: decoded.email_verified,
+        provider: decoded.provider,
       },
       process.env.JWT_SECRET!,
       { expiresIn: "10s" }
