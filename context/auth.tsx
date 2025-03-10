@@ -87,8 +87,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async () => {
+    console.log("signIn");
     try {
-      if (!request) return;
+      if (!request) {
+        console.log("No request");
+        return;
+      }
 
       await promptAsync();
     } catch (e) {
