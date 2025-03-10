@@ -1,8 +1,6 @@
 import {
   Image,
   StyleSheet,
-  Platform,
-  Linking,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -11,13 +9,28 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthUser } from "@/utils/middleware";
-
-const AUTH_URL = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/login`;
+import {
+  AuthRequestConfig,
+  DiscoveryDocument,
+  makeRedirectUri,
+  useAuthRequest,
+} from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
+
+const config: AuthRequestConfig = {
+  clientId: "google",
+  scopes: ["openid", "profile", "email"],
+  redirectUri: makeRedirectUri(),
+};
+
+const discovery: DiscoveryDocument = {
+  authorizationEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/authorize`,
+  tokenEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
+};
 
 export default function HomeScreen() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -25,48 +38,44 @@ export default function HomeScreen() {
   const [publicData, setPublicData] = useState<string | null>(null);
   const [protectedData, setProtectedData] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [code, setCode] = useState<string | null>(null);
+  const [tokenResponse, setTokenResponse] = useState<string | null>(null);
+
+  const [request, response, promptAsync] = useAuthRequest(config, discovery);
+
+  useEffect(() => {
+    handleResponse();
+  }, [response]);
+
+  async function handleResponse() {
+    if (response?.type === "success") {
+      const { code } = response.params;
+      setCode(code);
+
+      // exchange code for tokens
+      const formData = new FormData();
+      formData.append("code", code);
+      const tokenResponse = await fetch(
+        `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await tokenResponse.json();
+      // use token to get user info
+      setTokenResponse(data);
+      const decoded = jwtDecode(data);
+      setUser(decoded as AuthUser);
+      console.log("TOKEN RESPONSE", decoded);
+    }
+  }
 
   const handleSetTokens = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
     const decoded = jwtDecode(accessToken);
     setUser(decoded as AuthUser);
-  };
-
-  const handleSignIn = async () => {
-    try {
-      const platformParam = Platform.OS === "web" ? "web" : "native";
-      const authUrlWithPlatform = `${AUTH_URL}?platform=${platformParam}`;
-
-      const result = await WebBrowser.openAuthSessionAsync(authUrlWithPlatform);
-
-      if (Platform.OS === "android") {
-        const url = await new Promise<string>((resolve) => {
-          const subscription = Linking.addEventListener("url", (event) => {
-            subscription.remove();
-            resolve(event.url);
-          });
-        });
-
-        const params = new URLSearchParams(new URL(url).search);
-        const jwtToken = params.get("jwtToken");
-        const refreshToken = params.get("refreshToken");
-
-        if (jwtToken && refreshToken) {
-          handleSetTokens(jwtToken, refreshToken);
-        }
-      } else if (result.type === "success" && result.url) {
-        const params = new URLSearchParams(new URL(result.url).search);
-        const jwtToken = params.get("jwtToken");
-        const refreshToken = params.get("refreshToken");
-
-        if (jwtToken && refreshToken) {
-          handleSetTokens(jwtToken, refreshToken);
-        }
-      }
-    } catch (e) {
-      console.log(e);
-    }
   };
 
   const handleGetPublicData = async () => {
@@ -82,7 +91,7 @@ export default function HomeScreen() {
       `${process.env.EXPO_PUBLIC_BASE_URL}/api/protected/data`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${tokenResponse}`,
         },
       }
     );
@@ -153,7 +162,11 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         ) : (
-          <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+          <TouchableOpacity
+            style={styles.signInButton}
+            disabled={!request}
+            onPress={() => promptAsync()}
+          >
             <ThemedText style={styles.buttonText}>
               Sign in with Google
             </ThemedText>
