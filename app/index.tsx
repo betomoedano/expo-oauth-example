@@ -8,6 +8,7 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth";
+import SignInWithGoogleButton from "@/components/SignInWithGoogleButton";
 
 export default function HomeScreen() {
   const { user, signIn, signOut, isLoading } = useAuth();
@@ -29,15 +30,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         ) : (
-          <TouchableOpacity
-            style={styles.signInButton}
-            disabled={isLoading}
-            onPress={signIn}
-          >
-            <ThemedText style={styles.buttonText}>
-              Sign in with Google
-            </ThemedText>
-          </TouchableOpacity>
+          <SignInWithGoogleButton onPress={signIn} disabled={isLoading} />
         )}
         <ThemedView style={styles.dataDisplay}>
           <ThemedText style={styles.dataLabel}>Full user data:</ThemedText>
