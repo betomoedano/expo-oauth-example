@@ -9,9 +9,13 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth";
 import SignInWithGoogleButton from "@/components/SignInWithGoogleButton";
-
+import LoginForm from "@/components/LoginForm";
 export default function HomeScreen() {
   const { user, signIn, signOut, isLoading } = useAuth();
+
+  if (!user && !isLoading) {
+    return <LoginForm />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
