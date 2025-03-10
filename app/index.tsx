@@ -22,12 +22,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView>
-          <ProfileCard />
-        </ScrollView>
-      </SafeAreaView>
+    <ThemedView
+      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+    >
+      <ProfileCard />
     </ThemedView>
   );
 }

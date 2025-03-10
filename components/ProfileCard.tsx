@@ -53,14 +53,11 @@ export default function ProfileCard() {
       style={{
         width: "90%",
         maxWidth: 400,
-        alignSelf: "center",
         gap: 20,
         padding: 20,
         borderRadius: 12,
-        boxShadow:
-          theme === "dark"
-            ? "0 0 10px 0 rgba(180, 180, 255, 0.15)"
-            : "0 0 10px 0 rgba(0, 0, 0, 0.1)",
+        borderWidth: 1,
+        borderColor: "gray",
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
