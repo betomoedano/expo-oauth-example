@@ -36,8 +36,12 @@ export async function POST(request: Request) {
   }
 
   const userInfo = jwt.decode(data.id_token) as object;
-  const customToken = jwt.sign(userInfo, process.env.JWT_SECRET!, {
-    expiresIn: "1d",
+
+  // Create a new object without the exp property from the original token
+  const { exp, ...userInfoWithoutExp } = userInfo as any;
+
+  const customToken = jwt.sign(userInfoWithoutExp, process.env.JWT_SECRET!, {
+    expiresIn: "1d", // Set our custom expiration time
   });
 
   if (data.error) {
