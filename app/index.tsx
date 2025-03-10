@@ -4,14 +4,13 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  View,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth";
 
 export default function HomeScreen() {
-  const { user, signIn, signOut, isLoading, error } = useAuth();
+  const { user, signIn, signOut, isLoading } = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,20 +60,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
   },
-  header: {
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
   userCard: {
     padding: 24,
     borderRadius: 16,
@@ -110,27 +95,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
   },
-  dataButton: {
-    backgroundColor: "#34A853",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  refreshButton: {
-    backgroundColor: "#FBBC05",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 16,
-  },
   buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-  },
-  dataSection: {
-    gap: 16,
   },
   dataDisplay: {
     maxWidth: "100%",
@@ -145,20 +113,5 @@ const styles = StyleSheet.create({
   },
   dataContent: {
     fontSize: 14,
-  },
-  tokenSection: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  tokenLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  tokenText: {
-    fontSize: 12,
-    marginBottom: 12,
-    opacity: 0.7,
   },
 });
