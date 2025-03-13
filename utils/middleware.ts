@@ -9,6 +9,7 @@ export type AuthUser = {
   family_name?: string;
   email_verified?: boolean;
   provider?: string;
+  exp?: number;
 };
 
 /**
