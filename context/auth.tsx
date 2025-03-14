@@ -9,6 +9,7 @@ import {
   useAuthRequest,
 } from "expo-auth-session";
 import { jwtDecode } from "jwt-decode";
+import { tokenCache } from "@/utils/cache";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -42,6 +43,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     handleResponse();
   }, [response]);
 
+  // Check if user is authenticated
+  React.useEffect(() => {
+    const getToken = async () => {
+      const token = await tokenCache?.getToken("jwtToken");
+      if (token) {
+        setToken(token);
+
+        // decode jwt token
+        const decoded = jwtDecode(token);
+        setUser(decoded as AuthUser);
+      } else {
+        console.log("User is not authenticated");
+      }
+    };
+    getToken();
+  }, []);
+
   async function handleResponse() {
     if (response?.type === "success") {
       try {
@@ -61,6 +79,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         );
         const jwtToken = await tokenResponse.json();
         setToken(jwtToken);
+
+        // save token to cache
+        await tokenCache?.saveToken("jwtToken", jwtToken);
+
         // decode jwt token
         const decoded = jwtDecode(jwtToken);
         setUser(decoded as AuthUser);
