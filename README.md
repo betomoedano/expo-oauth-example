@@ -6,7 +6,8 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 
 - 🔐 Google Authentication
 - 🎯 BFF Architecture with Expo API Routes
-- 🎫 JWT-based token management (access & refresh tokens)
+- 🎫 JWT-based token management (for native)
+- 🎫 Cookies-based session management (for web)
 - 📱 Cross-platform support (iOS, Android, Web)
 - 🔄 Token refresh mechanism
 - 🛡️ Protected API routes
@@ -16,6 +17,21 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 - [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
 - [Expo Development Environment](https://docs.expo.dev/get-started/set-up-your-environment/)
 
+## This project supports both Cookies and Tokens
+
+Using JWT tokens works well for native platforms but isn't ideal for web applications. Using cookies on web has several important advantages:
+
+- Security: HTTP-only cookies cannot be accessed by JavaScript, protecting against XSS attacks
+- Automatic inclusion: Cookies are automatically sent with every request to your domain
+- CSRF protection: Can be combined with CSRF tokens for additional security
+- Session management: Easier to invalidate sessions server-side
+- Reduced client-side storage concerns: No need to manage token storage in localStorage/sessionStorage
+
+The token api detects the platform and handle auth appropriately:
+
+- For web requests, sets the token in a secure http-only cookie
+- For native requests, returns the token in the response
+
 ## Environment Setup
 
 1. Create a `.env.local` file in the root directory with:
@@ -23,10 +39,9 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 ```bash
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-JWT_SECRET=your_jwt_secret
-JWT_REFRESH_SECRET=your_jwt_refresh_secret
+JWT_SECRET=your_jwt_secret # use to sign jwt tokens
 EXPO_PUBLIC_BASE_URL=your_base_url # e.g., http://localhost:8081
-EXPO_PUBLIC_SCHEME=your_app_scheme # matches app.json scheme
+EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
 ```
 
 ## Get Started
