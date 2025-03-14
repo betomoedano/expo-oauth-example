@@ -4,10 +4,13 @@ import {
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI,
   COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
   COOKIE_MAX_AGE,
   JWT_EXPIRATION_TIME,
   JWT_SECRET,
   COOKIE_OPTIONS,
+  REFRESH_TOKEN_EXPIRY,
+  REFRESH_COOKIE_OPTIONS,
 } from "@/utils/constants";
 
 export async function POST(request: Request) {
@@ -56,12 +59,35 @@ export async function POST(request: Request) {
   // Current timestamp in seconds
   const issuedAt = Math.floor(Date.now() / 1000);
 
-  const customToken = await new jose.SignJWT(userInfoWithoutExp)
+  // Generate a unique jti (JWT ID) for the refresh token
+  const jti = crypto.randomUUID();
+
+  // Create access token (short-lived)
+  const accessToken = await new jose.SignJWT(userInfoWithoutExp)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime(JWT_EXPIRATION_TIME)
-    .setSubject(sub) // The "sub" (subject) claim identifies the user this token belongs to, typically using their unique ID.
-    .setIssuedAt(issuedAt) // Explicitly set the issued at time
-    .sign(new TextEncoder().encode(JWT_SECRET)); // jose requires you to encode the secret key manually
+    .setSubject(sub)
+    .setIssuedAt(issuedAt)
+    .sign(new TextEncoder().encode(JWT_SECRET));
+
+  // Create refresh token (long-lived)
+  const refreshToken = await new jose.SignJWT({
+    sub,
+    jti, // Include a unique ID for this refresh token
+    type: "refresh",
+    // Include all user information in the refresh token
+    // This ensures we have the data when refreshing tokens
+    name: (userInfo as any).name,
+    email: (userInfo as any).email,
+    picture: (userInfo as any).picture,
+    given_name: (userInfo as any).given_name,
+    family_name: (userInfo as any).family_name,
+    email_verified: (userInfo as any).email_verified,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(REFRESH_TOKEN_EXPIRY)
+    .setIssuedAt(issuedAt)
+    .sign(new TextEncoder().encode(JWT_SECRET));
 
   if (data.error) {
     return Response.json(
@@ -86,19 +112,34 @@ export async function POST(request: Request) {
       expiresAt: issuedAt + COOKIE_MAX_AGE,
     });
 
-    // Set the token in an HTTP-only cookie
+    // Set the access token in an HTTP-only cookie
     response.headers.set(
       "Set-Cookie",
-      `${COOKIE_NAME}=${customToken}; Max-Age=${COOKIE_OPTIONS.maxAge}; Path=${
+      `${COOKIE_NAME}=${accessToken}; Max-Age=${COOKIE_OPTIONS.maxAge}; Path=${
         COOKIE_OPTIONS.path
       }; ${COOKIE_OPTIONS.httpOnly ? "HttpOnly;" : ""} ${
         COOKIE_OPTIONS.secure ? "Secure;" : ""
       } SameSite=${COOKIE_OPTIONS.sameSite}`
     );
 
+    // Set the refresh token in a separate HTTP-only cookie
+    response.headers.append(
+      "Set-Cookie",
+      `${REFRESH_COOKIE_NAME}=${refreshToken}; Max-Age=${
+        REFRESH_COOKIE_OPTIONS.maxAge
+      }; Path=${REFRESH_COOKIE_OPTIONS.path}; ${
+        REFRESH_COOKIE_OPTIONS.httpOnly ? "HttpOnly;" : ""
+      } ${REFRESH_COOKIE_OPTIONS.secure ? "Secure;" : ""} SameSite=${
+        REFRESH_COOKIE_OPTIONS.sameSite
+      }`
+    );
+
     return response;
   }
 
-  // For native platforms, return the token in the response body
-  return Response.json(customToken);
+  // For native platforms, return both tokens in the response body
+  return Response.json({
+    accessToken,
+    refreshToken,
+  });
 }
