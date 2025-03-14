@@ -18,6 +18,8 @@ const AuthContext = React.createContext({
   user: null as AuthUser | null,
   signIn: () => {},
   signOut: () => {},
+  fetchWithAuth: (url: string, options: RequestInit) =>
+    Promise.resolve(new Response()),
   isLoading: false,
   error: null as AuthError | null,
 });
@@ -210,7 +212,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, isLoading, error }}>
+    <AuthContext.Provider
+      value={{ user, signIn, signOut, isLoading, error, fetchWithAuth }}
+    >
       {children}
     </AuthContext.Provider>
   );

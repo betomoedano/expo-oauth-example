@@ -1,11 +1,10 @@
 import { ThemedText } from "./ThemedText";
 import { useAuth } from "@/context/auth";
-import { Button, Image, Platform, useColorScheme, View } from "react-native";
+import { Button, Image, Platform, StyleSheet, View } from "react-native";
 import { useEffect, useState } from "react";
 
 export default function ProfileCard() {
   const { signOut, user } = useAuth();
-  const theme = useColorScheme();
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const isWeb = Platform.OS === "web";
 
@@ -102,7 +101,7 @@ export default function ProfileCard() {
         gap: 20,
         padding: 20,
         borderRadius: 12,
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
         borderColor: "gray",
       }}
     >
