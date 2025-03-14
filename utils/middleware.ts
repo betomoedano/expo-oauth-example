@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 
 export type AuthUser = {
   id: string;
@@ -50,16 +50,18 @@ export function withAuth<T extends Response>(
       }
 
       // Verify and decode the token
-      const decoded = jwt.verify(token, jwtSecret) as AuthUser;
+      const decoded = await jose.jwtVerify(
+        token,
+        new TextEncoder().encode(jwtSecret) // jose requires you to encode the secret key manually
+      );
 
       // Call the handler with the authenticated user
-      return await handler(req, decoded);
+      return await handler(req, decoded.payload as AuthUser);
     } catch (error) {
-      // Check for TokenExpiredError first since it's a subclass of JsonWebTokenError
-      if (error instanceof jwt.TokenExpiredError) {
+      if (error instanceof jose.errors.JWTExpired) {
         console.error("Token expired:", error);
         return Response.json({ error: "Token expired" }, { status: 401 });
-      } else if (error instanceof jwt.JsonWebTokenError) {
+      } else if (error instanceof jose.errors.JWTInvalid) {
         console.error("Invalid token:", error);
         return Response.json({ error: "Invalid token" }, { status: 401 });
       } else {

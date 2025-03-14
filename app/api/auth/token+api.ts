@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback`;
@@ -35,14 +35,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const userInfo = jwt.decode(data.id_token) as object;
+  const userInfo = jose.decodeJwt(data.id_token) as object;
 
   // Create a new object without the exp property from the original token
   const { exp, ...userInfoWithoutExp } = userInfo as any;
 
-  const customToken = jwt.sign(userInfoWithoutExp, process.env.JWT_SECRET!, {
-    expiresIn: "1d", // Set our custom expiration time
-  });
+  // User id
+  const sub = (userInfo as { sub: string }).sub;
+
+  const customToken = await new jose.SignJWT(userInfoWithoutExp)
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1d")
+    .setSubject(sub) // The "sub" (subject) claim identifies the user this token belongs to, typically using their unique ID.
+    .sign(new TextEncoder().encode(process.env.JWT_SECRET!)); // jose requires you to encode the secret key manually
 
   if (data.error) {
     return Response.json(
