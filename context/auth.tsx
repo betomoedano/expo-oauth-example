@@ -11,6 +11,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { tokenCache } from "@/utils/cache";
 import { Platform } from "react-native";
+import { BASE_URL } from "@/utils/constants";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -31,8 +32,8 @@ const config: AuthRequestConfig = {
 };
 
 const discovery: DiscoveryDocument = {
-  authorizationEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/authorize`,
-  tokenEndpoint: `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
+  authorizationEndpoint: `${BASE_URL}/api/auth/authorize`,
+  tokenEndpoint: `${BASE_URL}/api/auth/token`,
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

@@ -1,3 +1,5 @@
+import { BASE_URL, APP_SCHEME } from "@/utils/constants";
+
 export async function GET(request: Request) {
   const incomingParams = new URLSearchParams(request.url.split("?")[1]);
   const combinedPlatformAndState = incomingParams.get("state");
@@ -14,9 +16,7 @@ export async function GET(request: Request) {
   });
 
   return Response.redirect(
-    (platform === "web"
-      ? process.env.EXPO_PUBLIC_BASE_URL
-      : process.env.EXPO_PUBLIC_SCHEME) +
+    (platform === "web" ? BASE_URL : APP_SCHEME) +
       "?" +
       outgoingParams.toString()
   );

@@ -1,8 +1,7 @@
 import crypto from "crypto";
+import { GOOGLE_CLIENT_ID, GOOGLE_AUTH_URL, BASE_URL } from "@/utils/constants";
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback/google`; // Redirect back to your API
-const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_REDIRECT_URI = `${BASE_URL}/api/auth/callback/google`; // Redirect back to your API
 
 // Generate a secure random state
 function generateState(platform?: string | null): string {

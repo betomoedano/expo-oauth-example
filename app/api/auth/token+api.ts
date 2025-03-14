@@ -1,14 +1,14 @@
 import * as jose from "jose";
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/callback`;
-
-// Cookie settings
-const COOKIE_NAME = "auth_token";
-const COOKIE_MAX_AGE = 60; // 60 seconds
-
-// JWT expiration time
-const JWT_EXPIRATION_TIME = "60s"; // 60 seconds
+import {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+  COOKIE_NAME,
+  COOKIE_MAX_AGE,
+  JWT_EXPIRATION_TIME,
+  JWT_SECRET,
+  COOKIE_OPTIONS,
+} from "@/utils/constants";
 
 export async function POST(request: Request) {
   const body = await request.formData();
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     .setExpirationTime(JWT_EXPIRATION_TIME)
     .setSubject(sub) // The "sub" (subject) claim identifies the user this token belongs to, typically using their unique ID.
     .setIssuedAt(issuedAt) // Explicitly set the issued at time
-    .sign(new TextEncoder().encode(process.env.JWT_SECRET!)); // jose requires you to encode the secret key manually
+    .sign(new TextEncoder().encode(JWT_SECRET)); // jose requires you to encode the secret key manually
 
   if (data.error) {
     return Response.json(
@@ -89,7 +89,11 @@ export async function POST(request: Request) {
     // Set the token in an HTTP-only cookie
     response.headers.set(
       "Set-Cookie",
-      `${COOKIE_NAME}=${customToken}; Max-Age=${COOKIE_MAX_AGE}; Path=/; HttpOnly; Secure; SameSite=Lax`
+      `${COOKIE_NAME}=${customToken}; Max-Age=${COOKIE_OPTIONS.maxAge}; Path=${
+        COOKIE_OPTIONS.path
+      }; ${COOKIE_OPTIONS.httpOnly ? "HttpOnly;" : ""} ${
+        COOKIE_OPTIONS.secure ? "Secure;" : ""
+      } SameSite=${COOKIE_OPTIONS.sameSite}`
     );
 
     return response;

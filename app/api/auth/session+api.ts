@@ -1,7 +1,5 @@
 import * as jose from "jose";
-
-// Cookie name used for authentication
-const COOKIE_NAME = "auth_token";
+import { COOKIE_NAME, JWT_SECRET } from "@/utils/constants";
 
 export async function GET(request: Request) {
   try {
@@ -60,7 +58,7 @@ export async function GET(request: Request) {
       // Verify the token
       const verified = await jose.jwtVerify(
         token,
-        new TextEncoder().encode(process.env.JWT_SECRET!)
+        new TextEncoder().encode(JWT_SECRET)
       );
 
       // Calculate cookie expiration time

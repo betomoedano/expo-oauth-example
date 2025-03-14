@@ -1,7 +1,5 @@
 import * as jose from "jose";
-
-// Cookie name used for authentication
-const COOKIE_NAME = "auth_token";
+import { COOKIE_NAME, JWT_SECRET } from "@/utils/constants";
 
 export type AuthUser = {
   id: string;
@@ -60,7 +58,7 @@ export function withAuth<T extends Response>(
       }
 
       // Verify the JWT token
-      const jwtSecret = process.env.JWT_SECRET;
+      const jwtSecret = JWT_SECRET;
 
       if (!jwtSecret) {
         return Response.json(
