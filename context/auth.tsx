@@ -10,6 +10,7 @@ import {
 } from "expo-auth-session";
 import { jwtDecode } from "jwt-decode";
 import { tokenCache } from "@/utils/cache";
+import { Platform } from "react-native";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [request, response, promptAsync] = useAuthRequest(config, discovery);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<AuthError | null>(null);
+  const isWeb = Platform.OS === "web";
 
   React.useEffect(() => {
     handleResponse();
@@ -45,20 +47,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Check if user is authenticated
   React.useEffect(() => {
-    const getToken = async () => {
-      const token = await tokenCache?.getToken("jwtToken");
-      if (token) {
-        setToken(token);
+    const restoreSession = async () => {
+      setIsLoading(true);
+      try {
+        if (isWeb) {
+          // For web: Check if we have a session cookie by making a request to a session endpoint
+          const sessionResponse = await fetch(
+            `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/session`,
+            {
+              method: "GET",
+              credentials: "include", // Important: This includes cookies in the request
+            }
+          );
 
-        // decode jwt token
-        const decoded = jwtDecode(token);
-        setUser(decoded as AuthUser);
-      } else {
-        console.log("User is not authenticated");
+          if (sessionResponse.ok) {
+            const userData = await sessionResponse.json();
+            setUser(userData as AuthUser);
+          } else {
+            console.log("No active web session found");
+          }
+        } else {
+          // For native: Use the stored token from cache
+          const token = await tokenCache?.getToken("jwtToken");
+          if (token) {
+            setToken(token);
+            // decode jwt token
+            const decoded = jwtDecode(token);
+            setUser(decoded as AuthUser);
+          } else {
+            console.log("User is not authenticated");
+          }
+        }
+      } catch (error) {
+        console.error("Error restoring session:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    getToken();
-  }, []);
+
+    restoreSession();
+  }, [isWeb]);
 
   async function handleResponse() {
     if (response?.type === "success") {
@@ -70,22 +98,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const formData = new FormData();
         formData.append("code", code);
 
+        // Add platform information for the backend to handle appropriately
+        if (isWeb) {
+          formData.append("platform", "web");
+        }
+
         const tokenResponse = await fetch(
           `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/token`,
           {
             method: "POST",
             body: formData,
+            credentials: isWeb ? "include" : "same-origin", // Include cookies for web
           }
         );
-        const jwtToken = await tokenResponse.json();
-        setToken(jwtToken);
 
-        // save token to cache
-        await tokenCache?.saveToken("jwtToken", jwtToken);
+        if (isWeb) {
+          // For web: The token is set in a cookie by the server
+          // We just need to get the user data from the response
+          const userData = await tokenResponse.json();
+          if (userData.success) {
+            // Fetch the session to get user data
+            const sessionResponse = await fetch(
+              `${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/session`,
+              {
+                method: "GET",
+                credentials: "include",
+              }
+            );
 
-        // decode jwt token
-        const decoded = jwtDecode(jwtToken);
-        setUser(decoded as AuthUser);
+            if (sessionResponse.ok) {
+              const sessionData = await sessionResponse.json();
+              setUser(sessionData as AuthUser);
+            }
+          }
+        } else {
+          // For native: Handle token as before
+          const jwtToken = await tokenResponse.json();
+          setToken(jwtToken);
+
+          // save token to cache
+          await tokenCache?.saveToken("jwtToken", jwtToken);
+
+          // decode jwt token
+          const decoded = jwtDecode(jwtToken);
+          setUser(decoded as AuthUser);
+        }
       } catch (e) {
         console.log(e);
       } finally {
@@ -99,13 +156,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const fetchWithAuth = async (url: string, options: RequestInit) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response;
+    if (isWeb) {
+      // For web: Include credentials to send cookies
+      return fetch(url, {
+        ...options,
+        credentials: "include",
+      });
+    } else {
+      // For native: Use token in Authorization header
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
   };
 
   const signIn = async () => {
@@ -122,8 +188,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signOut = () => {
-    // TODO: Delete form local storage
+  const signOut = async () => {
+    if (isWeb) {
+      // For web: Call logout endpoint to clear the cookie
+      try {
+        await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/api/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (error) {
+        console.error("Error during web logout:", error);
+      }
+    } else {
+      // For native: Clear the token from cache
+      await tokenCache?.deleteToken("jwtToken");
+    }
+
+    // Clear state
     setUser(null);
     setToken(null);
   };
