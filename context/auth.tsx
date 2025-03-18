@@ -31,8 +31,20 @@ const config: AuthRequestConfig = {
   redirectUri: makeRedirectUri(),
 };
 
+// Our OAuth flow uses a server-side approach for enhanced security:
+// 1. Client initiates OAuth flow with Google through our server
+// 2. Google redirects to our server's /api/auth/authorize endpoint
+// 3. Our server handles the OAuth flow with Google using server-side credentials
+// 4. Client receives an authorization code from our server
+// 5. Client exchanges the code for tokens through our server
+// 6. Server uses its credentials to get tokens from Google and returns them to the client
 const discovery: DiscoveryDocument = {
+  // URL where users are redirected to log in and grant authorization.
+  // Our server handles the OAuth flow with Google and returns the authorization code
   authorizationEndpoint: `${BASE_URL}/api/auth/authorize`,
+  // URL where our server exchanges the authorization code for tokens
+  // Our server uses its own credentials (client ID and secret) to securely exchange
+  // the code with Google and return tokens to the client
   tokenEndpoint: `${BASE_URL}/api/auth/token`,
 };
 
@@ -285,12 +297,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   async function handleResponse() {
+    // This function is called when Google redirects back to our app
+    // The response contains the authorization code that we'll exchange for tokens
     if (response?.type === "success") {
       try {
         setIsLoading(true);
+        // Extract the authorization code from the response
+        // This code is what we'll exchange for access and refresh tokens
         const { code } = response.params;
 
-        // exchange code for jwt token
+        // Create form data to send to our token endpoint
+        // We include both the code and platform information
+        // The platform info helps our server handle web vs native differently
         const formData = new FormData();
         formData.append("code", code);
 
@@ -299,6 +317,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           formData.append("platform", "web");
         }
 
+        console.log("request", request);
+
+        // Get the code verifier from the request object
+        // This is the same verifier that was used to generate the code challenge
+        if (request?.codeVerifier) {
+          formData.append("code_verifier", request.codeVerifier);
+        } else {
+          console.warn("No code verifier found in request object");
+        }
+
+        // Send the authorization code to our token endpoint
+        // The server will exchange this code with Google for access and refresh tokens
+        // For web: credentials are included to handle cookies
+        // For native: we'll receive the tokens directly in the response
         const tokenResponse = await fetch(`${BASE_URL}/api/auth/token`, {
           method: "POST",
           body: formData,
@@ -306,11 +338,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         if (isWeb) {
-          // For web: The token is set in a cookie by the server
+          // For web: The server sets the tokens in HTTP-only cookies
           // We just need to get the user data from the response
           const userData = await tokenResponse.json();
           if (userData.success) {
             // Fetch the session to get user data
+            // This ensures we have the most up-to-date user information
             const sessionResponse = await fetch(
               `${BASE_URL}/api/auth/session`,
               {
@@ -325,7 +358,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
           }
         } else {
-          // For native: Handle both tokens
+          // For native: The server returns both tokens in the response
+          // We need to store these tokens securely and decode the user data
           const tokens = await tokenResponse.json();
           const newAccessToken = tokens.accessToken;
           const newRefreshToken = tokens.refreshToken;
@@ -339,16 +373,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             newRefreshToken ? "exists" : "missing"
           );
 
+          // Store tokens in state
           if (newAccessToken) setAccessToken(newAccessToken);
           if (newRefreshToken) setRefreshToken(newRefreshToken);
 
-          // save tokens to cache
+          // Save tokens to secure storage for persistence
           if (newAccessToken)
             await tokenCache?.saveToken("accessToken", newAccessToken);
           if (newRefreshToken)
             await tokenCache?.saveToken("refreshToken", newRefreshToken);
 
-          // decode jwt token
+          // Decode the JWT access token to get user information
           if (newAccessToken) {
             const decoded = jwtDecode(newAccessToken);
             setUser(decoded as AuthUser);

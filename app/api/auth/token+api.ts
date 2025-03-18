@@ -18,11 +18,9 @@ export async function POST(request: Request) {
   const code = body.get("code") as string;
   const platform = (body.get("platform") as string) || "native"; // Default to native if not specified
 
-  console.log("SERVER - Handling token request for", platform);
-
   if (!code) {
     return Response.json(
-      { error: "Missing required parameters" },
+      { error: "Missing authorization code" },
       { status: 400 }
     );
   }
