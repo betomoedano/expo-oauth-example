@@ -2,7 +2,7 @@ import { ThemedText } from "./ThemedText";
 import { useAuth } from "@/context/auth";
 import { Button, Image, Platform, StyleSheet, View } from "react-native";
 import { useState, useEffect, useRef } from "react";
-import { jwtDecode } from "jwt-decode";
+import * as jose from "jose";
 import { tokenCache } from "@/utils/cache";
 
 export default function ProfileCard() {
@@ -80,7 +80,7 @@ export default function ProfileCard() {
         const storedAccessToken = await tokenCache?.getToken("accessToken");
         if (storedAccessToken) {
           try {
-            const decoded = jwtDecode(storedAccessToken);
+            const decoded = jose.decodeJwt(storedAccessToken);
             const expTime = (decoded as any).exp || 0;
             accessTokenExpiryRef.current = expTime;
             setAccessTokenExpiration(formatExpirationTime(expTime));
@@ -93,7 +93,7 @@ export default function ProfileCard() {
         const storedRefreshToken = await tokenCache?.getToken("refreshToken");
         if (storedRefreshToken) {
           try {
-            const decoded = jwtDecode(storedRefreshToken);
+            const decoded = jose.decodeJwt(storedRefreshToken);
             const expTime = (decoded as any).exp || 0;
             refreshTokenExpiryRef.current = expTime;
             setRefreshTokenExpiration(formatExpirationTime(expTime));

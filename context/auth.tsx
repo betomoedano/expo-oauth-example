@@ -8,10 +8,10 @@ import {
   makeRedirectUri,
   useAuthRequest,
 } from "expo-auth-session";
-import { jwtDecode } from "jwt-decode";
 import { tokenCache } from "@/utils/cache";
 import { Platform } from "react-native";
 import { BASE_URL } from "@/utils/constants";
+import * as jose from "jose";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (storedAccessToken) {
             try {
               // Check if the access token is still valid
-              const decoded = jwtDecode(storedAccessToken);
+              const decoded = jose.decodeJwt(storedAccessToken);
               const exp = (decoded as any).exp;
               const now = Math.floor(Date.now() / 1000);
 
@@ -263,7 +263,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Update user data from the new access token
         if (newAccessToken) {
-          const decoded = jwtDecode(newAccessToken);
+          const decoded = jose.decodeJwt(newAccessToken);
           console.log("Decoded user data:", decoded);
           // Check if we have all required user fields
           const hasRequiredFields =
@@ -385,7 +385,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           // Decode the JWT access token to get user information
           if (newAccessToken) {
-            const decoded = jwtDecode(newAccessToken);
+            const decoded = jose.decodeJwt(newAccessToken);
             setUser(decoded as AuthUser);
           }
         }
