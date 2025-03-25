@@ -15,7 +15,6 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 ## Prerequisites
 
 - [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
-- [Expo Development Environment](https://docs.expo.dev/get-started/set-up-your-environment/)
 
 ## This project supports both Cookies and Tokens
 
@@ -70,19 +69,12 @@ EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
 
 ## Authentication Flow
 
-1. User initiates Google sign-in
-2. App redirects to Google OAuth
-3. Google redirects back to our API
-4. Backend validates Google token
-5. Backend issues JWT tokens (access + refresh)
-6. Frontend stores tokens and uses them for API calls
-
 ## API Routes
 
 - `GET /api/auth/login` - Initiates Google OAuth flow
-- `GET /api/auth/callback/google` - Google OAuth callback
+- `GET /api/auth/callback` - Google OAuth callback
 - `GET /api/auth/refresh-token` - Refresh access token
-- `POST /api/auth/signout` - Sign out and invalidate tokens
+- `POST /api/auth/logout` - Sign out and invalidate tokens
 - `GET /api/protected/data` - Example protected endpoint
 - `GET /api/public/data` - Example public endpoint
 

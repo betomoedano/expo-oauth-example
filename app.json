@@ -52,7 +52,8 @@
       },
       "eas": {
         "projectId": "53446019-1898-4ce4-a56e-d7c4a9c48b2b"
-      }
+      },
+      "expoConfig": {}
     }
   }
 }

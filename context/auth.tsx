@@ -191,10 +191,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return null;
         }
 
-        // For web: The token is refreshed in the cookie
-        // We just need to get the updated user data
-        const userData = await refreshResponse.json();
-
         // Fetch the session to get updated user data
         const sessionResponse = await fetch(`${BASE_URL}/api/auth/session`, {
           method: "GET",
@@ -284,8 +280,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         return newAccessToken; // Return the new access token
       }
-
-      console.log("Token refreshed successfully");
     } catch (error) {
       console.error("Error refreshing token:", error);
       // If there's an error refreshing, we should sign out
