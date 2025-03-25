@@ -137,7 +137,7 @@ export async function POST(request: Request) {
 
   // For native platforms, return both tokens in the response body
   return Response.json({
-    accessToken,
-    refreshToken,
+    access_token: accessToken,
+    refresh_token: refreshToken,
   });
 }
