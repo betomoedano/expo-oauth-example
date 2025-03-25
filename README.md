@@ -12,6 +12,12 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 - 🔄 Token refresh mechanism
 - 🛡️ Protected API routes
 
+## 🎥 Video
+
+  <a href="https://youtu.be/V2YdhR1hVNw">
+    <img src="https://i.ytimg.com/vi_webp/V2YdhR1hVNw/maxresdefault.webp" height="380" alt="YouTube Video Preview">
+  </a>
+
 ## Prerequisites
 
 - [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
@@ -30,6 +36,10 @@ The token api detects the platform and handle auth appropriately:
 
 - For web requests, sets the token in a secure http-only cookie
 - For native requests, returns the token in the response
+
+## Authentication Flow
+
+<img width="1268" alt="Shapes Mar 18 11 43" src="https://github.com/user-attachments/assets/3f9d6aeb-d9b0-467d-b194-20d5d0aa7305" />
 
 ## Environment Setup
 
@@ -66,8 +76,6 @@ EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
   - `/protected` - Protected endpoints requiring JWT
 - `/components` - Reusable React components
 - `/utils` - Utility functions and middleware
-
-## Authentication Flow
 
 ## API Routes
 
