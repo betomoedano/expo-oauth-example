@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as WebBrowser from "expo-web-browser";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { AuthUser } from "@/utils/middleware";
 import {
   AuthError,
@@ -12,6 +13,8 @@ import { tokenCache } from "@/utils/cache";
 import { Platform } from "react-native";
 import { BASE_URL } from "@/utils/constants";
 import * as jose from "jose";
+import { handleAppleAuthError } from "@/utils/handleAppleError";
+import { randomUUID } from "expo-crypto";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,6 +22,7 @@ const AuthContext = React.createContext({
   user: null as AuthUser | null,
   signIn: () => {},
   signOut: () => {},
+  signInWithApple: () => {},
   fetchWithAuth: (url: string, options: RequestInit) =>
     Promise.resolve(new Response()),
   isLoading: false,
@@ -112,6 +116,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 // Access token is still valid
                 console.log("Access token is still valid, using it");
                 setAccessToken(storedAccessToken);
+
+                if (storedRefreshToken) {
+                  setRefreshToken(storedRefreshToken);
+                }
+
                 setUser(decoded as AuthUser);
               } else if (storedRefreshToken) {
                 // Access token expired, but we have a refresh token
@@ -290,6 +299,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleNativeTokens = async (tokens: {
+    accessToken: string;
+    refreshToken: string;
+  }) => {
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+      tokens;
+
+    console.log(
+      "Received initial access token:",
+      newAccessToken ? "exists" : "missing"
+    );
+    console.log(
+      "Received initial refresh token:",
+      newRefreshToken ? "exists" : "missing"
+    );
+
+    // Store tokens in state
+    if (newAccessToken) setAccessToken(newAccessToken);
+    if (newRefreshToken) setRefreshToken(newRefreshToken);
+
+    // Save tokens to secure storage for persistence
+    if (newAccessToken)
+      await tokenCache?.saveToken("accessToken", newAccessToken);
+    if (newRefreshToken)
+      await tokenCache?.saveToken("refreshToken", newRefreshToken);
+
+    // Decode the JWT access token to get user information
+    if (newAccessToken) {
+      const decoded = jose.decodeJwt(newAccessToken);
+      setUser(decoded as AuthUser);
+    }
+  };
+
   async function handleResponse() {
     // This function is called when Google redirects back to our app
     // The response contains the authorization code that we'll exchange for tokens
@@ -355,33 +397,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // For native: The server returns both tokens in the response
           // We need to store these tokens securely and decode the user data
           const tokens = await tokenResponse.json();
-          const newAccessToken = tokens.accessToken;
-          const newRefreshToken = tokens.refreshToken;
-
-          console.log(
-            "Received initial access token:",
-            newAccessToken ? "exists" : "missing"
-          );
-          console.log(
-            "Received initial refresh token:",
-            newRefreshToken ? "exists" : "missing"
-          );
-
-          // Store tokens in state
-          if (newAccessToken) setAccessToken(newAccessToken);
-          if (newRefreshToken) setRefreshToken(newRefreshToken);
-
-          // Save tokens to secure storage for persistence
-          if (newAccessToken)
-            await tokenCache?.saveToken("accessToken", newAccessToken);
-          if (newRefreshToken)
-            await tokenCache?.saveToken("refreshToken", newRefreshToken);
-
-          // Decode the JWT access token to get user information
-          if (newAccessToken) {
-            const decoded = jose.decodeJwt(newAccessToken);
-            setUser(decoded as AuthUser);
-          }
+          await handleNativeTokens(tokens);
         }
       } catch (e) {
         console.error("Error handling auth response:", e);
@@ -467,6 +483,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signInWithApple = async () => {
+    try {
+      const rawNonce = randomUUID();
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: rawNonce,
+      });
+
+      console.log("🍎 credential client", JSON.stringify(credential, null, 2));
+
+      // Send both the identity token and authorization code to server
+      const appleResponse = await fetch(`${BASE_URL}/api/auth/apple`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identityToken: credential.identityToken,
+          rawNonce, // Use the rawNonce we generated and passed to Apple
+
+          // IMPORTANT:
+          // Apple only provides name and email on the first sign in
+          // On subsequent sign ins, these fields will be null
+          // We need to store the user info from the first sign in in our database
+          // And retrieve it on subsequent sign ins using the stable user ID
+          givenName: credential.fullName?.givenName,
+          familyName: credential.fullName?.familyName,
+          email: credential.email,
+        }),
+      });
+
+      const tokens = await appleResponse.json();
+      await handleNativeTokens(tokens);
+    } catch (e) {
+      console.log(e);
+      handleAppleAuthError(e);
+    }
+  };
+
   const signOut = async () => {
     if (isWeb) {
       // For web: Call logout endpoint to clear the cookie
@@ -496,6 +554,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         signIn,
         signOut,
+        signInWithApple,
         isLoading,
         error,
         fetchWithAuth,

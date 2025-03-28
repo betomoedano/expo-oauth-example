@@ -3,6 +3,7 @@ import { ThemedText } from "./ThemedText";
 import { useAuth } from "@/context/auth";
 import SignInWithGoogleButton from "./SignInWithGoogleButton";
 import { Image, useColorScheme, View } from "react-native";
+import { SignInWithAppleButton } from "./SignInWithAppleButton";
 
 export default function LoginForm() {
   const { signIn, isLoading } = useAuth();
@@ -50,7 +51,10 @@ export default function LoginForm() {
         >
           Welcome back! Please sign in to continue.
         </ThemedText>
-        <SignInWithGoogleButton onPress={signIn} disabled={isLoading} />
+        <View style={{ gap: 10 }}>
+          <SignInWithGoogleButton onPress={signIn} disabled={isLoading} />
+          <SignInWithAppleButton />
+        </View>
       </View>
     </ThemedView>
   );
