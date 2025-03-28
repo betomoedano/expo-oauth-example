@@ -225,8 +225,8 @@ export async function POST(request: Request) {
         type: "refresh",
         // Add any missing fields that might be needed by the UI
         // These would normally come from your user database
-        name: userInfo.name || `User ${sub.substring(0, 6)}`,
-        email: userInfo.email || `user-${sub.substring(0, 6)}@example.com`,
+        name: userInfo.name || `apple-user`,
+        email: userInfo.email || `apple-user`,
         picture:
           userInfo.picture ||
           `https://ui-avatars.com/api/?name=User&background=random`,
