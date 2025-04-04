@@ -1,19 +1,31 @@
 import * as jose from "jose";
 import crypto from "crypto";
-import { JWT_EXPIRATION_TIME, REFRESH_TOKEN_EXPIRY } from "@/utils/constants";
-import { JWT_SECRET } from "@/utils/constants";
+import {
+  JWT_EXPIRATION_TIME,
+  REFRESH_TOKEN_EXPIRY,
+  JWT_SECRET,
+} from "@/utils/constants";
 
-/**
- * To verify the identity token, your app server must:
- * Verify the JWS E256 signature using the server's public key
- * Verify the nonce for the authentication
- * Verify that the iss field contains https://appleid.apple.com
- * Verify that the aud field is the developer's client_id
- * Verify that the time is earlier than the exp value of the token
- */
-export async function POST(req: Request) {
-  const { identityToken, rawNonce, givenName, familyName, email } =
-    await req.json();
+interface AppleAuthResult {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface AppleUserInfo {
+  identityToken: string;
+  rawNonce: string;
+  givenName?: string;
+  familyName?: string;
+  email?: string;
+}
+
+export async function verifyAndCreateTokens({
+  identityToken,
+  rawNonce,
+  givenName,
+  familyName,
+  email,
+}: AppleUserInfo): Promise<AppleAuthResult> {
   const isFirstSignIn = givenName && email;
 
   // Get Apple's public keys from their JWKS endpoint
@@ -39,26 +51,16 @@ export async function POST(req: Request) {
       throw new Error("Missing required claims in token");
     }
 
-    // Log values for debugging
-    console.log("Raw nonce received:", rawNonce);
-    console.log("Received nonce from Apple:", payload.nonce);
-    console.log("Nonce supported:", (payload as any).nonce_supported);
-
-    // If nonce_supported is true, Apple returns the raw nonce
-    // If false, Apple returns the hashed nonce
+    // Verify nonce
     if ((payload as any).nonce_supported) {
-      // For nonce_supported=true, compare raw nonces
       if (payload.nonce !== rawNonce) {
         throw new Error("Invalid nonce");
       }
     } else {
-      // For nonce_supported=false, compare hashed nonces
       const computedHashedNonce = crypto
         .createHash("sha256")
         .update(Buffer.from(rawNonce, "utf8"))
         .digest("base64url");
-
-      console.log("Computed hashed nonce:", computedHashedNonce);
 
       if (payload.nonce !== computedHashedNonce) {
         throw new Error("Invalid nonce");
@@ -112,13 +114,12 @@ export async function POST(req: Request) {
       .setIssuedAt(issuedAt)
       .sign(new TextEncoder().encode(JWT_SECRET));
 
-    // For native platforms, return both tokens in the response body
-    return Response.json({
+    return {
       accessToken,
       refreshToken,
-    });
+    };
   } catch (error) {
     console.error("Token verification failed:", error);
-    return Response.json({ error: "Invalid token" }, { status: 401 });
+    throw error;
   }
 }
