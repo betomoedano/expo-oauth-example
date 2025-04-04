@@ -13,11 +13,11 @@ export default function SignInWithGoogleButton({
       <View
         style={{
           width: "100%",
+          height: 44,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          borderRadius: 12,
-          paddingVertical: 12,
+          borderRadius: 5,
           backgroundColor: "#fff",
           borderWidth: 1,
           borderColor: "#ccc",
@@ -26,9 +26,9 @@ export default function SignInWithGoogleButton({
         <Image
           source={require("../assets/images/google-icon.png")}
           style={{
-            width: 20,
-            height: 20,
-            marginRight: 12,
+            width: 18,
+            height: 18,
+            marginRight: 6,
           }}
         />
         <ThemedText type="defaultSemiBold" darkColor="#000">
