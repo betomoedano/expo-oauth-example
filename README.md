@@ -86,6 +86,44 @@ EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
 - `GET /api/protected/data` - Example protected endpoint
 - `GET /api/public/data` - Example public endpoint
 
+---
+
+## 🖇️ Sign in with Apple in Expo (iOS + Web)
+
+This setup supports Sign in with Apple for both iOS (native) and Web using Expo.
+
+---
+
+## 📱 iOS (Native with `expo-apple-authentication`)
+
+```sh
+npx expo install expo-apple-authentication
+```
+
+To enable the Sign In with Apple capability in your app, set the `ios.usesAppleSignIn` property to `true` in your project's app config:
+
+```json
+{
+  "expo": {
+    "ios": {
+      "usesAppleSignIn": true
+    }
+  }
+}
+```
+
+Add the plugin:
+
+```json
+{
+  "expo": {
+    "plugins": ["expo-apple-authentication"]
+  }
+}
+```
+
+## 🌐 Web (OAuth via Expo Router API Routes)
+
 ## Learn More
 
 - [Expo documentation](https://docs.expo.dev/)
