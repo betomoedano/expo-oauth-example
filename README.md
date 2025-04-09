@@ -1,10 +1,11 @@
-# Expo Auth Example with Google Sign-In 👋
+# 🔐 Cross-Platform Authentication with Expo: Google & Apple Sign-In Example
 
 This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Frontend) architecture for Google authentication using Expo API Routes and JWTs.
 
 ## Features
 
 - 🔐 Google Authentication
+-  Apple Authentication
 - 🎯 BFF Architecture with Expo API Routes
 - 🎫 JWT-based token management (for native)
 - 🎫 Cookies-based session management (for web)
@@ -12,15 +13,22 @@ This is an [Expo](https://expo.dev) project demonstrating a BFF (Backend-for-Fro
 - 🔄 Token refresh mechanism
 - 🛡️ Protected API routes
 
-## 🎥 Video
+## 🎥 Google Video
 
   <a href="https://youtu.be/V2YdhR1hVNw">
     <img src="https://i.ytimg.com/vi_webp/V2YdhR1hVNw/maxresdefault.webp" height="380" alt="YouTube Video Preview">
   </a>
 
+## 🎥 Apple Video
+
+  <a href="https://youtu.be/tqxTijhYhp8">
+    <img src="https://i.ytimg.com/vi_webp/tqxTijhYhp8/maxresdefault.webp" height="380" alt="YouTube Video Preview">
+  </a>
+
 ## Prerequisites
 
 - [Google Cloud Console](https://console.cloud.google.com) project with OAuth 2.0 credentials
+- [Apple Developer Account](https://developer.apple.com/account/)
 
 ## This project supports both Cookies and Tokens
 
@@ -51,6 +59,9 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 JWT_SECRET=your_jwt_secret # use to sign jwt tokens
 EXPO_PUBLIC_BASE_URL=your_base_url # e.g., http://localhost:8081
 EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
+
+# Generate yours at https://applekeygen.expo.app
+APPLE_CLIENT_SECRET=
 ```
 
 ## Get Started
@@ -76,15 +87,6 @@ EXPO_PUBLIC_SCHEME=your_app_scheme:// # matches app.json scheme
   - `/protected` - Protected endpoints requiring JWT
 - `/components` - Reusable React components
 - `/utils` - Utility functions and middleware
-
-## API Routes
-
-- `GET /api/auth/login` - Initiates Google OAuth flow
-- `GET /api/auth/callback` - Google OAuth callback
-- `GET /api/auth/refresh-token` - Refresh access token
-- `POST /api/auth/logout` - Sign out and invalidate tokens
-- `GET /api/protected/data` - Example protected endpoint
-- `GET /api/public/data` - Example public endpoint
 
 ---
 
@@ -124,11 +126,21 @@ Add the plugin:
 
 ## 🌐 Web (OAuth via Expo Router API Routes)
 
+## Environment Variables for Apple Sign In
+
+For web-based Apple Sign In, you'll need to generate a client secret. This is a JWT token that your server uses to validate requests with Apple's servers.
+
+1. Visit [Apple Key Generator](https://applekeygen.expo.app)
+2. Enter your Apple Developer Team ID and Bundle Identifier
+3. Generate and copy the client secret
+4. Add it to your `.env` file:
+
 ## Learn More
 
 - [Expo documentation](https://docs.expo.dev/)
 - [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
 - [JWT.io](https://jwt.io/)
+- [Sign in with Apple](https://developer.apple.com/sign-in-with-apple/)
 
 ## Community
 
